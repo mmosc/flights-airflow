@@ -1,6 +1,6 @@
 # Flights DB
 
-The scope of this repo is to create a DB containing information about flights in 2019, to perform monthly analyses on flight delays.
+The scope of this repo is to construct a pipeline (in airflow) that creates a DB (on a redshift cluster) containing information about flights in 2019, to perform monthly analyses on flight delays.
 
 ## Dataset
 Data are obtained from the [Bureau of Transportation Statistics](https://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-Time). This website allows to download data for a specific year and month, and to select the required information. 
@@ -45,16 +45,19 @@ The Database schema consists of a star schema, in which however not all of the p
 - columns: all the remaining columns in the .csv files
 
 The Entity Relation Diagram is as follows
-![alt text](./star_schema.png)
+![alt text](./figures/star_schema.png)
 
 The diagram is generated using [Visual Paradigm](https://online.visual-paradigm.com/diagrams/features/erd-tool/). Primary keys are in bold font. I did not manage to do-undo italics to distinguish numerical entries...
 
 
 ## ETL Pipeline
+The pipeline is sketched as follows:
+![alt text](./figures/pipeline.png)
 
-An identifier key for each flight is created by appending the month to the number of the entry in the ```.csv``` file. E.g. the 42nd flight in May will be uniquely identified by the key ```5_42```. 
 
-Data are loaded from the ```.csv``` files into a staging table containing all the information. This is then divided into the respective tables of the schema.
+Data are loaded from the ```.csv``` files into a staging table containing all the information. In this process, an identifier key for each flight is created by appending the month to the number of the entry in the ```.csv``` file. E.g. the 42nd flight in May will be uniquely identified by the key ```5_42```. 
+
+Data from the staging table is then divided into the respective tables of the schema.
 
 Finally, a check is ran on each table of the DB, verifying that there are no entries with missing key value.
 
