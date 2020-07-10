@@ -1,13 +1,13 @@
 # Flights DB
 
-The scope of this repo is to construct a pipeline (in airflow) that creates a DB (on a redshift cluster) containing information about flights in 2019, to perform monthly analyses on flight delays.
+The scope of this repo is to construct a pipeline (in airflow) that creates a DB (on a redshift cluster) containing information about US flights and strikes in 2019, to perform monthly analyses on  correlation between flight delays and strikes.
 
 Using airflow allows to automatise the pipeline. As it is, the pipeline is executed monthly. Simple changes in the configuration would allow to execute it on a daily basis.
 
 ## Dataset
-Data are obtained from the [Bureau of Transportation Statistics](https://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-Time). This website allows to download data for a specific year and month, and to select the required information. 
+Data on flights are obtained from the [Bureau of Transportation Statistics](https://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-Time). Data on strikes are obtained from the [Bureau of Labor Statistics](https://beta.bls.gov/labs/). Both these websites allow to download data for a specific year and month, and to select the required information. 
 
-Each month corresponds to a .csv file that is stored in the s3 bucket ```s3://demographics-udacity/airports/``` in a folder and with a name corresponding to the month. E.g. ```s3://demographics-udacity/airports/1/1.csv``` corresponds to January 2019.
+Both websites provide a .csv file that is stored in the s3 bucket ```s3://demographics-udacity/```, in the folders ```airports/``` and ```strikes``` respectively. Each file in the ```airports``` folder correspond to a month. E.g. ```s3://demographics-udacity/airports/1.csv``` corresponds to January 2019.
 
 ## Files 
 The following files are needed for execution:
@@ -19,7 +19,7 @@ The following files are needed for execution:
 
 
 ## Database Schema
-The Database schema consists of a star schema, in which however not all of the periferic tables are dimension tables. This schema is optimized on the queries of the analytics department, which are mostly focused on delays depending on airports and carriers. The database contains the following tables
+The data on flights are stored in a Database organised in a star schema, in which however not all of the periferic tables are dimension tables. This schema is optimized on the queries of the analytics department, which are mostly focused on delays depending on airports and carriers. The database contains the following tables
 #### Fact Tables 
 1. **flights** 
 - columns:     ID_KEY (PRIMARY KEY),FL_DATE, OP_UNIQUE_CARRIER,TAIL_NUM,OP_CARRIER_FL_NUM,ORIGIN_AIRPORT_ID,DEST_AIRPORT_ID,CANCELLED,CANCELLATION_CODE,DIVERTED,CARRIER_DELAY,WEATHER_DELAY,NAS_DELAY,SECURITY_DELAY,LATE_AIRCRAFT_DELAY
@@ -51,13 +51,16 @@ The Entity Relation Diagram is as follows
 
 The diagram is generated using [Visual Paradigm](https://online.visual-paradigm.com/diagrams/features/erd-tool/). Primary keys are in bold font. I did not manage to do-undo italics to distinguish numerical entries...
 
+The data on strikes are stored in an additional table named **strikes** 
+- columns: strike_year, strike_month, label (PRIMARY KEY), strike_value, month_net
+Strike value represent the thousands of workers  off work for strike in that month, and month_net the same value with respect to the previous month.
 
 ## ETL Pipeline
 The pipeline is sketched as follows:
 ![alt text](./figures/pipeline.png)
 
 
-Data are loaded from the ```.csv``` files into a staging table containing all the information. In this process, an identifier key for each flight is created by appending the month to the number of the entry in the ```.csv``` file. E.g. the 42nd flight in May will be uniquely identified by the key ```5_42```. 
+For both flights and strikes, data are loaded from the ```.csv``` files into a staging table containing all the information. For flights, an identifier key for each flight is created by appending the month to the number of the entry in the ```.csv``` file. E.g. the 42nd flight in May will be uniquely identified by the key ```5_42```. 
 
 Data from the staging table is then divided into the respective tables of the schema.
 
@@ -71,6 +74,7 @@ The DAG is configured such that
 - catchup is turned off
 - it does not email on retry
 ## Test query
+To test that the DB was created correctly, and that we can simply merge data on flight and strikes, we can run the following query
 ```
 select count(*), s.strike_year, s.strike_month, d.fl_quarter
 from strikes s
@@ -79,8 +83,7 @@ on s.strike_year = d.fl_year and s.strike_month = d.fl_month
 group by strike_year, strike_month, fl_quarter
 order by strike_month
 ```
-should return
-This should return 
+which should return
 | count         | strike_year       | strike_month | fl_quarter | 
 | ------------- |:-------------:| :-------------:| :-------------:| 
 | 583985| 2019| 1| 1|
