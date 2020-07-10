@@ -1,5 +1,18 @@
 class SqlQueries:
     staging_table_drop = "DROP TABLE IF EXISTS staging"
+    staging_strikes_drop = "DROP TABLE IF EXISTS staging_strikes"
+    
+        
+    staging_strikes= ("""
+        CREATE TABLE IF NOT EXISTS staging_strikes (
+        series_id   VARCHAR,
+        strike_year        BIGINT,
+        period      VARCHAR,
+        label       VARCHAR NOT NULL PRIMARY KEY,
+        strike_value       FLOAT,
+        month_net   FLOAT)
+        """)
+
     
     staging_table= ("""
         CREATE TABLE IF NOT EXISTS staging (
@@ -116,6 +129,10 @@ class SqlQueries:
         ID_KEY                   VARCHAR NOT NULL PRIMARY KEY)
     """)
     
+    strike_table_drop = """
+        DROP TABLE IF  EXISTS strikes
+    """
+    
     flight_table_drop = """
         DROP TABLE IF  EXISTS flights
     """
@@ -151,6 +168,17 @@ class SqlQueries:
     diversion_table_drop =  """
         DROP TABLE IF  EXISTS diversions
     """
+    
+    strikes_create= """
+        CREATE TABLE IF NOT EXISTS strikes (
+        strike_year        BIGINT,
+        strike_month      VARCHAR,
+        label       VARCHAR NOT NULL PRIMARY KEY,
+        strike_value       FLOAT,
+        month_net   FLOAT)
+        """
+    
+    
     flight_table_create = """
     CREATE TABLE IF NOT EXISTS flights (
         ID_KEY VARCHAR NOT NULL PRIMARY KEY,
@@ -300,6 +328,20 @@ class SqlQueries:
     );
     """
 
+    strike_table_insert = """
+    INSERT INTO strikes (
+        strike_year  ,
+        strike_month  ,
+        label,
+        strike_value, 
+        month_net    )\
+    SELECT 
+        strike_year  ,
+        CONVERT(INT, RIGHT(period,2))                  , 
+        label        , 
+        strike_value                 , 
+        month_net
+    FROM staging_strikes"""
 
 
 

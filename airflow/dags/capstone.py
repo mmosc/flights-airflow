@@ -32,6 +32,53 @@ start_operator = DummyOperator(
     dag=dag
 )
 
+
+drop_staging_strikes = PostgresOperator(
+    task_id="Drop_staging_strikes",
+    dag=dag,
+    postgres_conn_id="redshift",
+    sql=SqlQueries.staging_strikes_drop
+)
+
+create_staging_strikes = PostgresOperator(
+    task_id="Create_staging_strikes",
+    dag=dag,
+    postgres_conn_id="redshift",
+    sql=SqlQueries.staging_strikes
+)
+
+stage_strikes = StageToRedshiftOperator(
+    task_id='Stage_strikes',
+    redshift_conn_id='redshift',
+    aws_credentials_id='aws_credentials',
+    table='staging_strikes',
+    s3_bucket='demographics-udacity',
+    s3_key='strikes',
+    copy_options='CSV FILLRECORD IGNOREHEADER 1',
+    dag=dag
+)
+
+drop_strike = PostgresOperator(
+    task_id="Drop_strike",
+    dag=dag,
+    postgres_conn_id="redshift",
+    sql=SqlQueries.strike_table_drop
+)
+
+create_strike = PostgresOperator(
+    task_id="Create_strike",
+    dag=dag,
+    postgres_conn_id="redshift",
+    sql=SqlQueries.strikes_create
+)
+
+insert_strike = PostgresOperator(
+    task_id="Fill_strike",
+    dag=dag,
+    postgres_conn_id="redshift",
+    sql=SqlQueries.strike_table_insert
+)
+
 drop_staging = PostgresOperator(
     task_id="Drop_staging",
     dag=dag,
@@ -39,13 +86,13 @@ drop_staging = PostgresOperator(
     sql=SqlQueries.staging_table_drop
 )
 
+
 create_staging = PostgresOperator(
     task_id="Create_staging",
     dag=dag,
     postgres_conn_id="redshift",
     sql=SqlQueries.staging_table
 )
-
 
 stage_to_redshift = StageToRedshiftOperator(
     task_id='Stage_events',
@@ -255,6 +302,16 @@ insert_diversion = PostgresOperator(
     sql=SqlQueries.diversion_table_insert
 )
 
+
+strikes_check = DataQualityOperator(
+    task_id='Strikes_checks',
+    dag=dag,
+    redshift_conn_id='redshift',
+    sql_stmt='SELECT COUNT(*) FROM strikes WHERE label IS NULL',
+    expected_result=0    
+)
+
+
 flights_check = DataQualityOperator(
     task_id='Flights_checks',
     dag=dag,
@@ -263,6 +320,8 @@ flights_check = DataQualityOperator(
     expected_result=0    
 )
 
+
+
 airports_check = DataQualityOperator(
     task_id='Airports_checks',
     dag=dag,
@@ -270,6 +329,7 @@ airports_check = DataQualityOperator(
     sql_stmt='SELECT COUNT(*) FROM airports WHERE AIRPORT_ID IS NULL',
     expected_result=0    
 )
+
 
 airlines_check = DataQualityOperator(
     task_id='Airlines_checks',
@@ -335,8 +395,14 @@ end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 start_operator >> drop_staging
 drop_staging >> create_staging
 
-create_staging >> stage_to_redshift
 
+start_operator >> drop_staging_strikes
+drop_staging_strikes >> create_staging_strikes
+
+create_staging >> stage_to_redshift
+create_staging_strikes >> stage_strikes
+
+stage_strikes >> drop_strike
 stage_to_redshift >> drop_flight
 stage_to_redshift >> drop_airport
 stage_to_redshift >> drop_airline
@@ -347,6 +413,7 @@ stage_to_redshift >> drop_summary
 stage_to_redshift >> drop_gate_info
 stage_to_redshift >> drop_diversion
 
+drop_strike >> create_strike
 drop_flight >> create_flight
 drop_airport >> create_airport
 drop_airline >> create_airline
@@ -357,6 +424,7 @@ drop_summary >> create_summary
 drop_gate_info >> create_gate_info
 drop_diversion >> create_diversion
 
+create_strike >> insert_strike
 create_flight >> insert_flight
 insert_flight >> flights_check
 flights_check >> end_operator
@@ -394,3 +462,6 @@ gate_info_check >> end_operator
 create_diversion >> insert_diversion
 insert_diversion >> diversions_check
 diversions_check >> end_operator
+
+insert_strike >> strikes_check
+strikes_check >> end_operator

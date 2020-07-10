@@ -29,4 +29,4 @@ class DataQualityOperator(BaseOperator):
                 {records[0][0]} does not equal {self.expected_result}
                 """)
         else:
-            self.log.info("Data quality check passed")
+            self.log.info(f"Data quality check passed with {records[0][0]} records")

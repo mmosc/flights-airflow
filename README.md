@@ -2,6 +2,8 @@
 
 The scope of this repo is to construct a pipeline (in airflow) that creates a DB (on a redshift cluster) containing information about flights in 2019, to perform monthly analyses on flight delays.
 
+Using airflow allows to automatise the pipeline. As it is, the pipeline is executed monthly. Simple changes in the configuration would allow to execute it on a daily basis.
+
 ## Dataset
 Data are obtained from the [Bureau of Transportation Statistics](https://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-Time). This website allows to download data for a specific year and month, and to select the required information. 
 
@@ -68,4 +70,28 @@ The DAG is configured such that
 - retries happen every 5 minutes
 - catchup is turned off
 - it does not email on retry
-
+## Test query
+```
+select count(*), s.strike_year, s.strike_month, d.fl_quarter
+from strikes s
+join dates as d 
+on s.strike_year = d.fl_year and s.strike_month = d.fl_month
+group by strike_year, strike_month, fl_quarter
+order by strike_month
+```
+should return
+This should return 
+| count         | strike_year       | strike_month | fl_quarter | 
+| ------------- |:-------------:| :-------------:| :-------------:| 
+| 583985| 2019| 1| 1|
+| 533175| 2019| 2| 1|
+| 632074| 2019| 3| 1| 
+| 612023| 2019| 4| 2| 
+| 636390| 2019| 5| 2| 
+| 636691| 2019| 6| 2| 
+| 659029| 2019| 7| 3| 
+| 658461| 2019| 8| 3| 
+| 605979| 2019| 9| 3| 
+| 636014| 2019| 10| 4| 
+| 602453| 2019| 11| 4| 
+| 625763| 2019| 12| 4|
