@@ -1,4 +1,4 @@
-# Flights DB and SFO analysis
+# Flights DB
 
 The scope of this repo is to create a DB containing information about flights in 2019, to perform monthly analyses on flight delays.
 
