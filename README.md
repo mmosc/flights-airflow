@@ -22,6 +22,8 @@ The following files are needed for execution:
 The data on flights are stored in a Database organised in a star schema, in which however not all of the periferic tables are dimension tables. This schema is optimized on the queries of the analytics department, which are mostly focused on delays depending on airports and carriers. The database contains the following tables
 #### Fact Table dictionary
 1. **flights** 
+
+
 | column         | type       | description | 
 | ------------- |:-------------:| :-------------:| 
 | ID_KEY (PRIMARY KEY)| VARCHAR| Flight identifier|
@@ -43,6 +45,8 @@ The data on flights are stored in a Database organised in a star schema, in whic
 
 #### Dimenson Tables dictionaries
 1. **airports** 
+
+
 | column         | type       | description | 
 | ------------- |:-------------:| :-------------:| 
 | AIRPORT_ID (PRIMARY KEY)| BIGINT|  Airport ID. An identification number assigned by US DOT to identify a unique airport. Use this field for airport analysis across a range of years because an airport can change its airport code and airport codes can be reused.|
@@ -56,12 +60,17 @@ The data on flights are stored in a Database organised in a star schema, in whic
 | WAC| BIGINT| World area code|
 
 2. **airlines** 
+
+
 | column         | type       | description | 
 | ------------- |:-------------:| :-------------:| 
 | OP_UNIQUE_CARRIER (PRIMARY KEY)| VARCHAR| Unique Carrier Code. When the same code has been used by multiple carriers, a numeric suffix is used for earlier users, for example, PA, PA(1), PA(2). Use this field for analysis across a range of years.	|
 | OP_CARRIER_AIRLINE_ID| BIGINT| 	An identification number assigned by US DOT to identify a unique airline (carrier). A unique airline (carrier) is defined as one holding and reporting under the same DOT certificate regardless of its Code, Name, or holding company/corporation.	|
 | OP_CARRIER|VARCHAR | Carrier |
+
 3. **dates**
+
+
 | column         | type       | description | 
 | ------------- |:-------------:| :-------------:| 
 | FL_DATE (PRIMARY KEY)| VARCHAR| Date|
@@ -73,6 +82,8 @@ The data on flights are stored in a Database organised in a star schema, in whic
 
 #### Other  Tables dictionaries
 1. **dep_perfs**
+
+
 | column         | type       | description | 
 | ------------- |:-------------:| :-------------:| 
 | ID_KEY (PRIMARY KEY)|VARCHAR | Flight identifier |
@@ -85,7 +96,10 @@ The data on flights are stored in a Database organised in a star schema, in whic
 | DEP_TIME_BLK| VARCHAR| CRS Departure Time Block, Hourly Intervals|
 | TAXI_OUT| FLOAT| Taxi Out Time, in Minutes|
 | WHEELS_OFF| FLOAT| Wheels Off Time (local time: hhmm)|
+
 2. **arr_perfs**
+
+
 | column         | type       | description | 
 | ------------- |:-------------:| :-------------:| 
 | ID_KEY (PRIMARY KEY)|VARCHAR | Flight identifier |
@@ -98,7 +112,10 @@ The data on flights are stored in a Database organised in a star schema, in whic
 | ARR_DEL15| FLOAT| Arrival Delay Indicator, 15 Minutes or More (1=Yes)|
 | ARR_DELAY_GROUP|FLOAT | Arrival Delay intervals, every (15-minutes from <-15 to >180)|
 | ARR_TIME_BLK| VARCHAR| CRS Arrival Time Block, Hourly Intervals|
+
 3. **summaries**
+
+
 | column         | type       | description | 
 | ------------- |:-------------:| :-------------:| 
 | ID_KEY (PRIMARY KEY)| VARCHAR| Flight identifier |
@@ -108,13 +125,17 @@ The data on flights are stored in a Database organised in a star schema, in whic
 | FLIGHTS|FLOAT | Number of Flights|
 | DISTANCE|FLOAT | Distance between airports (miles)|
 | DISTANCE_GROUP| BIGINT| Distance Intervals, every 250 Miles, for Flight Segment|
+
 4. **gate_info**
+
+
 | column         | type       | description | 
 | ------------- |:-------------:| :-------------:| 
 | ID_KEY (PRIMARY KEY)| VARCHAR|  Flight identifier|
 | FIRST_DEP_TIME| FLOAT| First Gate Departure Time at Origin Airport|
 | TOTAL_ADD_GTIME| FLOAT| Total Ground Time Away from Gate for Gate Return or Cancelled Flight|
 | LONGEST_ADD_GTIME| FLOAT| Longest Time Away from Gate for Gate Return or Cancelled Flight|
+
 5.**diversions**
 
 - columns: all the remaining columns in the .csv files. Contain information on diversions of the flight.
@@ -125,6 +146,7 @@ The Entity Relation Diagram is as follows
 The diagram is generated using [Visual Paradigm](https://online.visual-paradigm.com/diagrams/features/erd-tool/). Primary keys are in bold font. I did not manage to do-undo italics to distinguish numerical entries...
 
 The data on strikes are stored in an additional table named **strikes** 
+
 | column         | type       | description | 
 | ------------- |:-------------:| :-------------:| 
 | strike_year| BIGINT | Year |
